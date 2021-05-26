@@ -1,43 +1,111 @@
 import java.io.IOException;
 
-import java.io.*;
 import java.net.URL;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.*;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import java.util.ArrayList;
 
 
 public class UsedCarsAPI {
 
-    public static void searchCarsAPI() {
-            try {
+    public static void searchCarsAPI(ArrayList<String> urlList) {
 
-                URL url = new URL("https://api.trademe.co.nz/v1/Search/Motors/Used.xml");
+        boolean titleFlag = false;
+        boolean numplateFlag = false;
+        boolean kilometresFlag = false;
+        boolean bodyFlag = false;
+        boolean seatsFlag = false;
+        String preURL = "https://api.tmsandbox.co.nz/v1/Listings/";
+
+        System.out.println("------------------------------------------------------------------------");
+        System.out.println("Query used cars using APIs and confirm that the four details are shown");
+        System.out.println("------------------------------------------------------------------------\n");
+            
+        try {
+            for (int i = 0; i < urlList.size(); i++) {
+
+                //Authenticate
+                URL url = new URL(preURL + urlList.get(i) + ".xml");
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setDoOutput(true);
                 connection.setRequestMethod("GET");
+                connection.setRequestProperty("Authorization", "OAuth oauth_consumer_key=01438AD1DECC4A39111D85ACD983F43F, oauth_token=6F73A60437B45B4FD54E2CB7BCA0AF2D, oauth_signature_method=PLAINTEXT, oauth_signature=32FFBEFA9FD0F88B2214D46A9FEDACB5%269B4EC3519BCDC95BD8A15240CB72B774");
 
-                connection.setRequestProperty("Authorization", "OAuth oauth_consumer_key=B9D0FC3FBD5D33CE91BFC3E1A855B766, oauth_token=D9C6C6262E682B2293BE295696ABDFB5, oauth_signature_method=PLAINTEXT, oauth_signature=1759A97B2872269EA1753E0CD7C75003%2635522AE8F4F54DEE22CBA6F3DF6DB9CE");
+                //Write
                 BufferedReader in = new BufferedReader(new InputStreamReader(
                     connection.getInputStream()));
                 String inputLine;
-                while ((inputLine = in.readLine()) != null) 
-                    System.out.println(inputLine);
-                in.close();
+                while ((inputLine = in.readLine()) != null) { 
 
-                //Consumer key: B9D0FC3FBD5D33CE91BFC3E1A855B766
-                //Consumer secret: 1759A97B2872269EA1753E0CD7C75003
-                //oauth_token=3CAA732EFB7BF89B3F25A454DCC0C717
-                //oauth_token_secret=08EAB07D3857167AA3F1BADC209638C8
-                //oauth_verifier=0BF95D20A216F3E4BC1615880869C52E
-                //oauth_token=D9C6C6262E682B2293BE295696ABDFB5
-                //oauth_token_secret=35522AE8F4F54DEE22CBA6F3DF6DB9CE
+                    Document document = Jsoup.parse(inputLine);
 
-                //connection.setRequestProperty("Authorization", "OAuth oauth_consumer_key=B9D0FC3FBD5D33CE91BFC3E1A855B766, oauth_token=D9C6C6262E682B2293BE295696ABDFB5, oauth_signature_method=PLAINTEXT, oauth_signature=35522AE8F4F54DEE22CBA6F3DF6DB9CE%2608EAB07D3857167AA3F1BADC209638C8");
-        
-        
-            } catch (IOException e) {
+                    if (titleFlag == false) {
+                        String carName = document.title();
+                        System.out.println("Car Name: " + carName);
+                        System.out.println("------------------------------------------");
+                        titleFlag = true;
+                    }
+                    
+                    //Prints car details
+                    Elements liElements = document.getElementsByTag("DisplayName");
+                    for (Element item : liElements) {
+                        String line = item.text();
+                        
+                        if (line.contains("Number plate")) {
+                            String value = item.nextElementSibling().text();
+                            System.out.println(line + ": " + value);
+                            numplateFlag = true;
+                            System.out.println("------------------------------------------");
+                        } else if ((line.contains("Kilometres"))) {
+                            String value = item.nextElementSibling().text();
+                            System.out.println(line + ": " + value);
+                            kilometresFlag = true;
+                            System.out.println("------------------------------------------");
+                        } else if ((line.contains("Body"))) {
+                            String value = item.nextElementSibling().text();
+                            System.out.println(line + ": " + value);
+                            bodyFlag = true;
+                            System.out.println("------------------------------------------");
+                        } else if ((line.contains("Seats"))) {
+                            String value = item.nextElementSibling().text();
+                            System.out.println(line + ": " + value);
+                            seatsFlag = true;
+                            System.out.println("------------------------------------------");
+                        }
+                    }     
+                }
+
+                //Prints missing details
+                if (numplateFlag == false) {
+                    System.out.println("The number plate is missing");
+                }
+                if (kilometresFlag == false) {
+                    System.out.println("Mileage in kilometres is missing");
+                }
+                if (bodyFlag == false) {
+                    System.out.println("The car body specifications are missing");
+                }
+                if (seatsFlag == false) {
+                    System.out.println("The number of seats are missing");
+                }
+                System.out.println("\n");
+
+                //Reset Flags
+                titleFlag = false;
+                numplateFlag = false; 
+                kilometresFlag = false;
+                bodyFlag = false;
+                seatsFlag = false;  
+            }
+        }
+                
+                catch (IOException e) {
                 e.printStackTrace();
             }
         }
