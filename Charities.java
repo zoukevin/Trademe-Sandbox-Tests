@@ -7,17 +7,15 @@ import org.jsoup.nodes.Element;
 import java.net.*;
 import java.io.*;
 
-public class Charities{
+public class Charities {
    public static void findCharities() {
       try {
          URL charityURL = new URL("https://api.trademe.co.nz/v1/Charities.xml");
-         BufferedReader in = new BufferedReader(
-         new InputStreamReader(charityURL.openStream()));
+         BufferedReader in = new BufferedReader(new InputStreamReader(charityURL.openStream()));
          String inputLine;
          System.out.println("------------------------------------------------------------------------");
          System.out.println("Retrieved a list of charities and confirmed that St John is in the list");
          System.out.println("------------------------------------------------------------------------\n");
-
 
          while ((inputLine = in.readLine()) != null) {
             Document document = Jsoup.parse(inputLine);
